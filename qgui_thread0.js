@@ -9,15 +9,11 @@ function mapObject(object/*: Record<string, any>*/, map/*: ([key: string, value:
   return Object.fromEntries(Object.entries(object).map(map));
 }
 function buffer_inputs(inputs/*: Input[] */)/*: [Input[], Input[]] */ {
-  if (!USE_BUFFERED_INPUT) return [inputs, []];
-  if (inputs.length === 0) return [[], []];
+  if (!USE_BUFFERED_INPUT || inputs.length === 0) return [inputs, []];
   const split_time = inputs[0].time + BUFFERED_INPUT_TIME;
   const split_index = inputs.find(v => v > v.time >= split_time);
   if (split_index === -1) return [inputs, []];
-  return [
-    inputs.slice(0, split_index),
-    inputs.slice(split_index),
-  ];
+  return [inputs.slice(0, split_index), inputs.slice(split_index)];
 }
 
 // create input (for mobile key events)
