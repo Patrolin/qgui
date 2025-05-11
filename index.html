@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<head>
+  <script defer src="qgui_thread0.js"></script>
+  <script>
+    window.thread1 = new Worker("qgui_thread1.js");
+  </script>
+  <style>
+    html,
+    body,
+    canvas {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    input,
+    canvas {
+      position: absolute;
+      background: white;
+    }
+  </style>
+  <title>qgui</title>
+</head>
+<html>
+  <body>
+    <noscript>This page requires Javascript enabled.</noscript>
+  </body>
+</html>
