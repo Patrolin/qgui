@@ -1,14 +1,52 @@
+// wasm utils
+let /** @type {WebAssembly.Instance} */ wasm_instance;
+let /** @type {WebAssembly.Exports} */ wasm_exports;
+const utf8_decoder = new TextDecoder();
+/**
+ * @param {number} channel
+ * @param {number} ptr
+ * @param {number} size
+ */
+function write(channel, ptr, size) {
+  const slice = wasm_exports.memory.buffer.slice(ptr, ptr + size);
+  const message = utf8_decoder.decode(slice);
+  if (channel === 2) {
+    console.error(message);
+  } else {
+    console.log(message);
+  }
+}
+
+// create wasm instance
+WebAssembly.instantiateStreaming(window.app, {
+  odin_env: {write},
+  js: {println},
+}).then(result => {
+  wasm_instance = result.instance;
+  wasm_exports = wasm_instance.exports;
+  console.log(wasm_exports.setup());
+});
+
 const USE_BUFFERED_INPUT = true;
 const BUFFERED_INPUT_TIME = 8;
 
 // utils
-function println(...args/*: any[]*/) {
+function println(...args) {
   console.log(...args);
 }
-function mapObject(object/*: Record<string, any>*/, map/*: ([key: string, value: any]) => [any, any]*/)/*: Record<string, any>*/ {
+/**
+ * @param {Record<string, any>} object
+ * @param {([key, value]: [string, any]) => [any, any]} map
+ * @return {[any[], any[]]}
+ */
+function mapObject(object, map) {
   return Object.fromEntries(Object.entries(object).map(map));
 }
-function buffer_inputs(inputs/*: Input[] */)/*: [Input[], Input[]] */ {
+/**
+ * @param {any[]} inputs
+ * @return {[any[], any[]]}
+ */
+function buffer_inputs(inputs) {
   if (!USE_BUFFERED_INPUT || inputs.length === 0) return [inputs, []];
   const split_time = inputs[0].time + BUFFERED_INPUT_TIME;
   const split_index = inputs.find(v => v > v.time >= split_time);
@@ -67,7 +105,7 @@ function rerender() {
     requestAnimationFrame(_render);
   }
 }
-window.addEventListener("resize", (event/*: Event*/) => {
+window.addEventListener("resize", (/** @type Event */ event) => {
   // NOTE: rescale immediately
   thread1.postMessage({
     new_width: window.innerWidth,
@@ -78,35 +116,35 @@ window.addEventListener("resize", (event/*: Event*/) => {
 }, {passive: true})
 
 // mouse and touch events
-window.addEventListener("pointerdown", (event/*: PointerEvent*/) => {
+window.addEventListener("pointerdown", (/** @type PointerEvent */ event) => {
   acc_inputs.push({time: +new Date(), type: InputType.PointerDown});
   rerender();
 }, {passive: true});
-canvas.addEventListener("touchstart", (event/*: TouchEvent*/) => {
-  event.preventDefault();
+canvas.addEventListener("touchstart", (/** @type TouchEvent */ event) => {
+  event.preventDefault(); // prevent `pointercancel` event
 })
-window.addEventListener("pointermove", (event/*: PointerEvent*/) => {
+window.addEventListener("pointermove", (/** @type PointerEvent */ event) => {
   acc_inputs.push({time: +new Date(), type: InputType.PointerMove});
   rerender();
 }, {passive: true});
-window.addEventListener("pointerup", (event/*: PointerEvent*/) => {
+window.addEventListener("pointerup", (/** @type PointerEvent */ event) => {
   acc_inputs.push({time: +new Date(), type: InputType.PointerUp});
   rerender();
 }, {passive: true});
 
 // key events
-input.addEventListener("input", (event/*: InputEvent*/) => {
+input.addEventListener("input", (/** @type InputEvent */ event) => {
   event.preventDefault();
   // NOTE: this is the only way to get key inputs on mobile, but you need to focus the input element first
   acc_inputs.push({time: +new Date(), type: InputType.KeyInput});
   rerender();
 })
-window.addEventListener("keydown", (event/*: KeyboardEvent*/) => {
+window.addEventListener("keydown", (/** @type KeyboardEvent */ event) => {
   console.log(event.key)
   acc_inputs.push({time: +new Date(), type: InputType.KeyboardDown});
   rerender();
 }, {passive: true});
-window.addEventListener("keyup", (event/*: KeyboardEvent*/) => {
+window.addEventListener("keyup", (/** @type KeyboardEvent */ event) => {
   acc_inputs.push({time: +new Date(), type: InputType.KeyboardUp});
   rerender();
 }, {passive: true});

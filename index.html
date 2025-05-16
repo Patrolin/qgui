@@ -2,6 +2,7 @@
 <head>
   <script defer src="qgui_thread0.js"></script>
   <script>
+    window.app = fetch("out/app.wasm");
     window.thread1 = new Worker("qgui_thread1.js");
   </script>
   <style>
